@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Crow NPC
+* source:	https://sketchfab.com/3d-models/low-poly-crow-npc-c71c8388507f439383f52df2f360efbb
+* author:	Shannen Guntoro (https://sketchfab.com/basileios)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Crow NPC" (https://sketchfab.com/3d-models/low-poly-crow-npc-c71c8388507f439383f52df2f360efbb) by Shannen Guntoro (https://sketchfab.com/basileios) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
