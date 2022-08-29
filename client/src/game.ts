@@ -96,7 +96,10 @@ let mrCrowDialog: Dialog[] = [
         isQuestion: true,
         isEndOfDialog: true,
         buttons: [
-            { label: `Call da manager`,
+            { label: `Try chatbot`,
+                goToDialog: 'chat_bot_start',
+            },
+            { label: `Call manager`,
                 goToDialog: 'manager_will_come',
                 triggeredActions: async () => {
                     log('Hi')
@@ -133,6 +136,11 @@ let mrCrowDialog: Dialog[] = [
         isEndOfDialog: true
     },
     {
+        name: 'chat_bot_start',
+        text: `Chatbot will take it from here`,
+        isEndOfDialog: true
+    },
+    {
         name: 'manager_will_come',
         text: `Pls wait a few min, manager will come to you!`,
         isEndOfDialog: true
@@ -146,15 +154,15 @@ let mrCrowDialog: Dialog[] = [
 const npcTransform = new Transform({
     position: new Vector3(8.5, 0, 12),
     rotation: new Quaternion(0, 0, 0, 1),
-    scale: new Vector3(0.061250001192092896, 0.061250001192092896, 0.061250001192092896)
+    scale: new Vector3(1.9, 1.9, 1.9)
 })
 
-let myNPC = new NPC(npcTransform, 'models/NPC/scene.gltf', () => {
+let myNPC = new NPC(npcTransform, 'models/NPCGirl/etrian_odyssey_3_monk.glb', () => {
     myNPC.talk(mrCrowDialog, 'greeting')
 }, {
-    portrait: { path: 'models/NPC/ava.png', height: 173, width: 180 },
-    hoverText: 'Mr Crow',
-    idleAnim: `Take 001`,
+    portrait: { path: 'models/NPCGirl/ava.png', height: 170, width: 170 },
+    hoverText: 'Ms Amy',
+    idleAnim: `Scene`,
     coolDownDuration: 1,
     reactDistance: 1,
     faceUser: true,
