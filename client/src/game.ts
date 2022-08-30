@@ -1,6 +1,6 @@
 import { getConnectedPlayers, getPlayerData } from "@decentraland/Players"
 import { getUserData } from "@decentraland/Identity"
-import { NPC, Dialog } from '@dcl/npc-scene-utils'
+import {NPC, Dialog, DialogWindow,  ImageData} from '@dcl/npc-scene-utils'
 import * as ui from '@dcl/ui-scene-utils'
 const managerWallets = ['0x2d961678e01e88ed7e240c79a21fbf4fd437c4db', '0x67e36df3eff7614cfa77a1afb0f085f7a8743718']
 let scenePlayers = {};
@@ -73,6 +73,93 @@ const transform5 = new Transform({
 })
 entity4.addComponentOrReplace(transform5)
 //</editor-fold>
+let currentUserData, callUrl = '', contextCount = Math.random().toString();
+const bearer = "ya29.a0AVA9y1s07SwwoD1gZZdNlB2IBGrizPKxLJxQ6100uid_iWUlgzrfaK6SrBuKHUmntD58eFYM-8wA1x_UrGZgsfwtWYrjRS57MVGv9JYlQUfN1aniyCxWIVJHg1VoN1-hsyqoNcGfxl7dYVh6X1t3f4wA4yG8EwaCgYKATASAQASFQE65dr836dBw4ToYrcoby7kPkUYYw0165";
+executeTask(async () => {
+    try {
+        currentUserData = await getUserData()
+        callUrl = `https://dialogflow.googleapis.com/v2/projects/testvietnameseagent-ikbl/agent/sessions/`
+    } catch {
+        log("failed to reach URL")
+    }
+})
+
+
+async function callQuery(text: string) {
+    const data = {
+        "query_input": {
+            "text": {
+                "text": text,
+                "language_code": "vi"
+            }
+        }
+    }
+    // ${currentUserData?.userId}
+    let response = await fetch(`${callUrl}${contextCount}:detectIntent`, {
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearer}` },
+        method: "POST",
+        body: JSON.stringify(data),
+    })
+    return await response.json()
+}
+const chatbotImage = {path: 'models/NPCGirl/ava.png', height: 164, width: 169 }
+let dialogWindow = new DialogWindow(chatbotImage)
+
+function cleanSession() {
+    contextCount = Math.random().toString();
+    dialogWindow.closeDialogWindow()
+    dialogWindow = new DialogWindow(chatbotImage)
+}
+
+async function buildNextDialog(json: any) {
+    dialogWindow.closeDialogWindow()
+    const dialogTitle = json.queryResult.fulfillmentText;
+    // @ts-ignore
+    const filterResponses = json.queryResult.fulfillmentMessages.filter(item => !item.hasOwnProperty('platform')).filter(item => item.hasOwnProperty('payload'));
+    log(filterResponses)
+    const payloads = filterResponses.reduce((acc: any, current: { payload: { richContent: any } }) => {
+        log(current)
+        const richContent = current.payload.richContent;
+        const flattenRichContent = richContent.flat();
+        let options = flattenRichContent.reduce((acc2: any, current2: { options: any[] }) => {
+            return [...acc2, ...(current2.options.map(option => option.text))]
+        }, [])
+        return [...acc, ...options];
+        // return [...acc, ...(current.payload.richContent)]
+    }, [])
+    log(payloads)
+    const name = Math.random().toString()
+    const currentSession = contextCount;
+    const buttons = payloads.map((payload: string) => {
+        return { label: payload,
+            goToDialog: name,
+            triggeredActions: async () => {
+                if (currentSession === contextCount) {
+                    log('trigger inside btn')
+                    const json = await callQuery(payload)
+                    await buildNextDialog(json)
+                }
+            }
+        }
+    })
+    const dialog = [{
+        name: name,
+        text: dialogTitle,
+        ...(payloads.length > 0 && { isQuestion: payloads.length > 0}),
+        isEndOfDialog: true,
+        ...(payloads.length > 0 && { buttons: buttons})
+    }];
+    log(dialog)
+
+    dialogWindow = new DialogWindow(chatbotImage)
+    dialogWindow.openDialogWindow(dialog, name)
+    // if (payloads.length === 0) {
+    //     await cleanSession()
+    // }
+    // myNPC.endInteraction();
+    // myNPC.talk(dialog, name)
+}
+
 
 //<editor-fold desc="NPC">
 let mrCrowDialog: Dialog[] = [
@@ -98,6 +185,10 @@ let mrCrowDialog: Dialog[] = [
         buttons: [
             { label: `Try chatbot`,
                 goToDialog: 'chat_bot_start',
+                triggeredActions: () => {
+                    log('trigger outside btn')
+                    cleanSession()
+                }
             },
             { label: `Call manager`,
                 goToDialog: 'manager_will_come',
@@ -138,6 +229,11 @@ let mrCrowDialog: Dialog[] = [
     {
         name: 'chat_bot_start',
         text: `Chatbot will take it from here`,
+        triggeredByNext: async () => {
+            cleanSession()
+            const json = await callQuery('phục vụ')
+            await buildNextDialog(json)
+        },
         isEndOfDialog: true
     },
     {
